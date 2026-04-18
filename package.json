@@ -12,17 +12,13 @@
     "d3": "^7.9.0",
     "next": "^16.2.4",
     "react": "19.2.4",
-    "react-bootstrap": "^2.10.10",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-bootstrap": "^2.10.10"
   },
   "devDependencies": {
-    "autoprefixer": "^10.5.0",
-    "postcss": "^8.5.10",
-    "tailwindcss": "^4.2.2",
-    "typescript": "6.0.3",
-  "@types/node": "...",
-  "@types/react": "...",
-  "@types/react-dom": "..."
-
+    "typescript": "^5.4.5",
+    "@types/node": "^20.11.30",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22"
   }
 }
