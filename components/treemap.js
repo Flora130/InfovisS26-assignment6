@@ -34,7 +34,7 @@ export function TreeMap(props) {
     if (!tree || !tree.children) return null;
 
     const root = d3.hierarchy(tree)
-       
+
         .sum(d => (!d.children || d.children.length === 0) ? (d.value || 0) : 0)
         .sort((a, b) => b.value - a.value);
 
@@ -44,15 +44,15 @@ export function TreeMap(props) {
         .paddingOuter(2)
         (root);
 
-    // schemeDark2 
+
     const colorScale = d3.scaleOrdinal(d3.schemeDark2);
 
- 
+
     const getColorNode = (d) => {
         if (d.parent && d.parent.depth > 0) return d.parent;
-        return d; 
+        return d;
     };
-   
+    // 安全取 attr，沿祖先链向上找第一个有 attr 的节点
     const getAttr = (node) => {
         let cur = node;
         while (cur) {
@@ -63,10 +63,10 @@ export function TreeMap(props) {
     };
     const getColor = (d) => colorScale(getColorNode(d).data.name);
 
-    
+
     const leafNodes = root.leaves();
 
-    
+
     const legendMap = new Map();
     leafNodes.forEach(d => {
         const colorNode = getColorNode(d);
@@ -82,7 +82,7 @@ export function TreeMap(props) {
     });
     const legendItems = Array.from(legendMap.values());
 
-    
+
     const watermarkNodes = (() => {
         const map = new Map();
         leafNodes.forEach(d => {
@@ -114,7 +114,7 @@ export function TreeMap(props) {
             preserveAspectRatio="xMidYMid meet"
             style={{ width: "100%", height: "100%" }}
         >
-        
+
             <g transform={`translate(${margin.left}, 4)`}>
                 {legendItems.map((item, i) => (
                     <g key={i} transform={`translate(${i * 130}, 0)`}>
@@ -126,10 +126,10 @@ export function TreeMap(props) {
                 ))}
             </g>
 
-           
+
             <g transform={`translate(${margin.left},${margin.top + legendHeight})`}>
 
-              
+
                 <rect
                     x={0}
                     y={0}
@@ -140,30 +140,28 @@ export function TreeMap(props) {
                     strokeWidth={1.5}
                 />
 
-              
+
                 {leafNodes.map((d, i) => {
                     const width = d.x1 - d.x0;
                     const height = d.y1 - d.y0;
                     const clipId = `clip-leaf-${i}`;
                     const color = getColor(d);
 
+                    const isHovered =
+                        hoveredCell &&
+                        hoveredCell.x0 === d.x0 &&
+                        hoveredCell.y0 === d.y0;
+
                     const isSelected =
                         selectedCell &&
-                        selectedCell.data.name === d.data.name &&
-                        selectedCell.data.attr === d.data.attr &&
-                        selectedCell.depth === d.depth;
+                        selectedCell.x0 === d.x0 &&
+                        selectedCell.y0 === d.y0;
 
-                    
+
                     const groupTotal = d.parent ? d.parent.value : root.value;
                     const percentage = ((d.value / groupTotal) * 100).toFixed(1);
                     const label = `${d.data.attr}:${d.data.name}`;
                     const valueLabel = `Value: ${percentage}%`;
-
-                    const isHovered =
-                        hoveredCell &&
-                        hoveredCell.data.name === d.data.name &&
-                        hoveredCell.data.attr === d.data.attr &&
-                        hoveredCell.depth === d.depth;
 
                     return (
                         <g
@@ -188,15 +186,7 @@ export function TreeMap(props) {
                                 strokeWidth={isSelected ? 3 : 1}
                             />
 
-                           
-                            {hoveredCell && !isHovered && (
-                                <rect
-                                    width={width}
-                                    height={height}
-                                    fill="rgba(0,0,0,0.15)"
-                                    style={{ pointerEvents: "none" }}
-                                />
-                            )}
+
 
                             <g clipPath={`url(#${clipId})`}>
                                 <NodeText
@@ -210,12 +200,16 @@ export function TreeMap(props) {
                     );
                 })}
 
-               
+
                 {watermarkNodes.map((wm, i) => {
                     const cx = (wm.x0 + wm.x1) / 2;
                     const cy = (wm.y0 + wm.y1) / 2;
+                    const regionW = wm.x1 - wm.x0;
                     const regionH = wm.y1 - wm.y0;
-                    const fontSize = Math.min(regionH / 8, 28);
+                    const isSingle = watermarkNodes.length === 1;
+                    const fontSize = isSingle
+                        ? Math.min(regionW / (wm.label.length * 0.6), regionH / 4, 48)
+                        : Math.min(regionH / 8, 28);
                     return (
                         <text
                             key={i}
@@ -226,7 +220,7 @@ export function TreeMap(props) {
                             fontSize={`${fontSize}px`}
                             fill="rgba(0,0,0,0.22)"
                             fontWeight="bold"
-                            transform={`rotate(90, ${cx}, ${cy})`}
+                            transform={isSingle ? undefined : `rotate(90, ${cx}, ${cy})`}
                             style={{ pointerEvents: "none", userSelect: "none" }}
                         >
                             {wm.label}
